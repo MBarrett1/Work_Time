@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<String> times;
 
     TextView textView ;
+    TextView moneyView;
 
     Button start, pause, reset, lap, clear, add ;
 
@@ -46,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         textView = (TextView)findViewById(R.id.textView);
+        moneyView = (TextView)findViewById(R.id.moneyView);
         start = (Button)findViewById(R.id.button);
         pause = (Button)findViewById(R.id.button2);
         reset = (Button)findViewById(R.id.button3);
@@ -103,7 +105,8 @@ public class MainActivity extends AppCompatActivity {
                 Minutes = 0;
                 MilliSeconds = 0;
 
-                textView.setText("00:00");
+                textView.setText("0:0:00");
+                moneyView.setText("$0.00");
 
 //                ListElementsArrayList.clear();
 
@@ -178,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.clear();
-        editor.commit();
+        editor.apply();
 
     }
 
@@ -208,6 +211,13 @@ public class MainActivity extends AppCompatActivity {
 
             textView.setText("" + Hours + ":" + Minutes + ":"
                     + String.format("%02d", Seconds) );
+
+            int moneyTime = (int) (UpdateTime / 1800);
+
+            int dollars = moneyTime / 100;
+            int cents = moneyTime % 100;
+
+            moneyView.setText("" + "$"+ dollars + "." + cents );
 
             handler.postDelayed(this, 0);
         }

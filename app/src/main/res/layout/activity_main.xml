@@ -12,23 +12,36 @@
     android:background="#ECEFF1">
 
     <TextView
-        android:text="00:00"
+        android:id="@+id/textView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView"
+        android:layout_above="@+id/moneyView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="-76dp"
+        android:text="0:0:00"
+        android:textColor="#2196F3"
         android:textSize="50dp"
-        android:textStyle="bold"
-        android:textColor="#009688"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/moneyView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="76dp"
+        android:text="$0.00"
+        android:textColor="#FF9800"
+        android:textSize="50dp"
+        android:textStyle="bold" />
 
     <Button
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="110dp"
-        android:layout_toStartOf="@+id/textView"
+        android:layout_marginTop="151dp"
         android:text="Start" />
 
     <Button
@@ -43,41 +56,40 @@
         android:id="@+id/button5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/button4"
-        android:layout_toEndOf="@+id/textView"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/button"
         android:text="Clear" />
 
     <Button
         android:id="@+id/button3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/button"
-        android:layout_toEndOf="@+id/textView"
         android:text="Reset" />
 
     <Button
         android:id="@+id/button6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/button4"
-        android:layout_centerHorizontal="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/button"
         android:text="Add" />
 
     <Button
         android:id="@+id/button4"
-        android:layout_width="89dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="177dp"
-        android:layout_toStartOf="@+id/textView"
+        android:layout_alignStart="@+id/button2"
+        android:layout_alignTop="@+id/button6"
         android:text="Finish" />
 
     <ListView
+        android:id="@+id/listview1"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="254dp"
         android:layout_below="@+id/button4"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="12dp"
-        android:id="@+id/listview1"/>
+        android:layout_marginTop="10dp" />
 
 </RelativeLayout>
