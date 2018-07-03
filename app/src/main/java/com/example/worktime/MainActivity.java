@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
 
     TextView textView ;
 
-    Button start, pause, reset, lap, clear ;
+    Button start, pause, reset, lap, clear, add ;
 
     long MillisecondTime, StartTime, TimeBuff, UpdateTime = 0L ;
 
@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
         reset = (Button)findViewById(R.id.button3);
         lap = (Button)findViewById(R.id.button4) ;
         clear = (Button)findViewById(R.id.button5) ;
+        add = (Button)findViewById(R.id.button6) ;
         listView = (ListView)findViewById(R.id.listview1);
 
         handler = new Handler() ;
@@ -120,6 +121,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                int minute = 60000;
+
+                TimeBuff += minute * 10;
+
+            }
+        });
+
         lap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -127,9 +139,6 @@ public class MainActivity extends AppCompatActivity {
                 if( Seconds > 0 ) {
 
                     saveData();
-
-//                    times.add(textView.getText().toString());
-//                    adapter.notifyDataSetChanged();
 
                 }
 
@@ -181,13 +190,15 @@ public class MainActivity extends AppCompatActivity {
 
             UpdateTime = TimeBuff + MillisecondTime;
 
-            Seconds = (int) (UpdateTime / 1000);
+            int secondTime = (int) (UpdateTime / 1000);
 
-            Hours = Seconds / 3600;
+            Seconds = secondTime % 60;
 
-            Minutes = Seconds / 60;
+            int time = (int) (UpdateTime / 60000);
 
-            Seconds = Seconds % 60;
+            Hours = time / 60;
+
+            Minutes = time % 60;
 
             MilliSeconds = (int) (UpdateTime % 1000);
 
