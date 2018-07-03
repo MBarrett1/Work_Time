@@ -23,41 +23,46 @@
         android:layout_centerHorizontal="true" />
 
     <Button
-        android:text="Start"
+        android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="41dp"
-        android:id="@+id/button" />
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="110dp"
+        android:layout_toStartOf="@+id/textView"
+        android:text="Start" />
 
     <Button
-        android:text="Pause"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/button2"
-        android:layout_alignBaseline="@+id/button"
-        android:layout_alignBottom="@+id/button"
-        android:layout_centerHorizontal="true" />
-
-    <Button
-        android:text="Reset"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/button2"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:id="@+id/button3" />
+        android:layout_alignTop="@+id/button"
+        android:layout_centerHorizontal="true"
+        android:text="Pause" />
 
     <Button
-        android:text="Finish"
-        android:layout_width="fill_parent"
+        android:id="@+id/button5"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignTop="@+id/button4"
+        android:text="Clear" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/button"
+        android:layout_toEndOf="@+id/textView"
+        android:text="Reset" />
+
+    <Button
         android:id="@+id/button4"
-        android:layout_below="@+id/button"
-        android:layout_centerHorizontal="true" />
+        android:layout_width="284dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="180dp"
+        android:text="Finish" />
 
     <ListView
         android:layout_width="match_parent"

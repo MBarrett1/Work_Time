@@ -1,4 +1,5 @@
 package com.example.worktime;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v7.app.AppCompatActivity;
@@ -8,15 +9,22 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.os.Handler;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    ArrayList<String> times;
+
     TextView textView ;
 
-    Button start, pause, reset, lap ;
+    Button start, pause, reset, lap, clear ;
 
     long MillisecondTime, StartTime, TimeBuff, UpdateTime = 0L ;
 
@@ -42,15 +50,17 @@ public class MainActivity extends AppCompatActivity {
         pause = (Button)findViewById(R.id.button2);
         reset = (Button)findViewById(R.id.button3);
         lap = (Button)findViewById(R.id.button4) ;
+        clear = (Button)findViewById(R.id.button5) ;
         listView = (ListView)findViewById(R.id.listview1);
 
         handler = new Handler() ;
 
-        ListElementsArrayList = new ArrayList<String>(Arrays.asList(ListElements));
+        loadData();
+//        ListElementsArrayList = new ArrayList<String>(Arrays.asList(ListElements));
 
         adapter = new ArrayAdapter<String>(MainActivity.this,
                 android.R.layout.simple_list_item_1,
-                ListElementsArrayList
+                times
         );
 
         listView.setAdapter(adapter);
@@ -101,21 +111,56 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        clear.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                times.clear();
+                adapter.notifyDataSetChanged();
+
+            }
+        });
+
         lap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
                 if( Seconds > 0 ) {
 
-                    ListElementsArrayList.add(textView.getText().toString());
+                    saveData();
 
-                    adapter.notifyDataSetChanged();
+//                    times.add(textView.getText().toString());
+//                    adapter.notifyDataSetChanged();
 
                 }
 
             }
         });
 
+    }
+
+    private void saveData() {
+        times.add(textView.getText().toString());
+        adapter.notifyDataSetChanged();
+
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        Gson gson = new Gson();
+        String json = gson.toJson(times);
+        editor.putString("task list", json);
+        editor.apply();
+    }
+
+    private void loadData() {
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        Gson gson = new Gson();
+        String json = sharedPreferences.getString("task list", null);
+        Type type = new TypeToken<ArrayList<String>>() {}.getType();
+        times = gson.fromJson(json, type);
+
+        if (times == null){
+            times = new ArrayList<>();
+        }
     }
 
     public Runnable runnable = new Runnable() {
