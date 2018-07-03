@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
 
     Handler handler;
 
-    int Seconds, Minutes, MilliSeconds ;
+    int Seconds, Minutes, MilliSeconds, Hours ;
 
     ListView listView ;
 
@@ -115,8 +115,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                times.clear();
-                adapter.notifyDataSetChanged();
+                clearData();
 
             }
         });
@@ -163,6 +162,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void clearData() {
+        times.clear();
+        adapter.notifyDataSetChanged();
+
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.clear();
+        editor.commit();
+
+    }
+
     public Runnable runnable = new Runnable() {
 
         public void run() {
@@ -172,6 +182,8 @@ public class MainActivity extends AppCompatActivity {
             UpdateTime = TimeBuff + MillisecondTime;
 
             Seconds = (int) (UpdateTime / 1000);
+
+            Hours = Seconds / 3600;
 
             Minutes = Seconds / 60;
 
@@ -183,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
 //                    + String.format("%02d", Seconds) + ":"
 //                    + String.format("%03d", MilliSeconds));
 
-            textView.setText("" + Minutes + ":"
+            textView.setText("" + Hours + ":" + Minutes + ":"
                     + String.format("%02d", Seconds) );
 
             handler.postDelayed(this, 0);
