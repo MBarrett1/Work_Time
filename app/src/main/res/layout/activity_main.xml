@@ -9,7 +9,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.worktime.MainActivity"
-    android:background="#ECEFF1">
+    android:background="#151B1E">
 
     <TextView
         android:id="@+id/textView"
@@ -19,9 +19,8 @@
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="-76dp"
         android:text="0:0:00"
-        android:textColor="#2196F3"
-        android:textSize="50dp"
-        android:textStyle="bold" />
+        android:textColor="#FFFFFF"
+        android:textSize="50dp" />
 
     <TextView
         android:id="@+id/moneyView"
@@ -31,11 +30,12 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="76dp"
         android:text="$0.00"
-        android:textColor="#FF9800"
-        android:textSize="50dp"
-        android:textStyle="bold" />
+        android:textColor="#FFFFFF"
+        android:textSize="50dp" />
 
     <Button
+        style="?android:attr/borderlessButtonStyle"
+        android:textColor="#FFFFFF"
         android:id="@+id/button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -45,6 +45,8 @@
         android:text="Start" />
 
     <Button
+        style="?android:attr/borderlessButtonStyle"
+        android:textColor="#FFFFFF"
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -54,13 +56,17 @@
 
     <Button
         android:id="@+id/button5"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_below="@+id/button"
-        android:text="Clear" />
+        android:layout_alignStart="@+id/button3"
+        android:layout_alignTop="@+id/button6"
+        android:text="Clear"
+        android:textColor="#FFFFFF" />
 
     <Button
+        style="?android:attr/borderlessButtonStyle"
+        android:textColor="#FFFFFF"
         android:id="@+id/button3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -70,13 +76,18 @@
 
     <Button
         android:id="@+id/button6"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/button"
-        android:text="Add" />
+        android:layout_alignParentTop="true"
+        android:layout_alignStart="@+id/button"
+        android:layout_marginTop="228dp"
+        android:text="Add"
+        android:textColor="#FFFFFF" />
 
     <Button
+        style="?android:attr/borderlessButtonStyle"
+        android:textColor="#FFFFFF"
         android:id="@+id/button4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -87,9 +98,9 @@
     <ListView
         android:id="@+id/listview1"
         android:layout_width="match_parent"
-        android:layout_height="254dp"
+        android:layout_height="255dp"
         android:layout_below="@+id/button4"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="4dp" />
 
 </RelativeLayout>

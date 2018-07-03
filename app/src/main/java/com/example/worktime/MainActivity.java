@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         handler = new Handler() ;
 
         loadData();
-//        ListElementsArrayList = new ArrayList<String>(Arrays.asList(ListElements));
 
         adapter = new ArrayAdapter<String>(MainActivity.this,
                 android.R.layout.simple_list_item_1,
