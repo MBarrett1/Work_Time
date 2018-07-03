@@ -22,10 +22,13 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    int totalMinutes;
+
     ArrayList<String> times;
 
     TextView textView ;
     TextView moneyView;
+    TextView totalTimeView;
 
     Button start, pause, reset, lap, clear, add ;
 
@@ -50,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
         textView = (TextView)findViewById(R.id.textView);
         moneyView = (TextView)findViewById(R.id.moneyView);
+        totalTimeView = (TextView)findViewById(R.id.totalTimeView);
+
         start = (Button)findViewById(R.id.button);
         pause = (Button)findViewById(R.id.button2);
         reset = (Button)findViewById(R.id.button3);
@@ -124,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
                 Minutes = 0;
                 MilliSeconds = 0;
 
-                textView.setText("0:0:00");
+                textView.setText("0h 0m 00s");
                 moneyView.setText("$0.00");
 
 //                ListElementsArrayList.clear();
@@ -139,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 clearData();
+                totalTimeView.setText( "0h 0m" );
 
             }
         });
@@ -170,14 +176,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveData() {
-        times.add(textView.getText().toString());
+        times.add( String.valueOf(Hours) + "h " + String.valueOf(Minutes) + "m" );
         adapter.notifyDataSetChanged();
+
+        totalMinutes += UpdateTime;
+        int time = (int) (totalMinutes / 60000);
+        totalTimeView.setText( "" + time/60 + "h " + time%60 + "m " );
 
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         Gson gson = new Gson();
         String json = gson.toJson(times);
         editor.putString("task list", json);
+        editor.putInt("total time", totalMinutes);
         editor.apply();
     }
 
@@ -187,6 +198,10 @@ public class MainActivity extends AppCompatActivity {
         String json = sharedPreferences.getString("task list", null);
         Type type = new TypeToken<ArrayList<String>>() {}.getType();
         times = gson.fromJson(json, type);
+
+        int tempTotTime = sharedPreferences.getInt("total time", -1);
+        int time = (int) (tempTotTime / 60000);
+        totalTimeView.setText( "" + time/60 + "h " + time%60 + "m " );
 
         if (times == null){
             times = new ArrayList<>();
@@ -228,8 +243,8 @@ public class MainActivity extends AppCompatActivity {
 //                    + String.format("%02d", Seconds) + ":"
 //                    + String.format("%03d", MilliSeconds));
 
-            textView.setText("" + Hours + ":" + Minutes + ":"
-                    + String.format("%02d", Seconds) );
+            textView.setText("" + Hours + "h " + Minutes + "m "
+                    + String.format("%02d", Seconds) + "s" );
 
             int moneyTime = (int) (UpdateTime / 1800);
 
@@ -237,6 +252,9 @@ public class MainActivity extends AppCompatActivity {
             int cents = moneyTime % 100;
 
             moneyView.setText("" + "$"+ dollars + "." + cents );
+
+//            totalTime = "" + Hours + "h " + Minutes + "m ";
+//            totalTimeView.setText( totalTime );
 
             handler.postDelayed(this, 0);
         }
