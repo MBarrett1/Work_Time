@@ -3,6 +3,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,20 +12,32 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.os.Handler;
+import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    private DatabaseReference mDatabase;
+
     int totalMinutes;
 
-    ArrayList<String> times;
+    ArrayList<String> times = new ArrayList<>();
 
     TextView textView ;
     TextView moneyView;
@@ -51,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+
         textView = (TextView)findViewById(R.id.textView);
         moneyView = (TextView)findViewById(R.id.moneyView);
         totalTimeView = (TextView)findViewById(R.id.totalTimeView);
@@ -65,12 +80,7 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler() ;
 
-        loadData();
-
-//        adapter = new ArrayAdapter<String>(MainActivity.this,
-//                android.R.layout.simple_list_item_1,
-//                times
-//        );
+//        loadData();
 
         adapter = new ArrayAdapter<String>(MainActivity.this,
                 android.R.layout.simple_list_item_1, times) {
@@ -91,6 +101,35 @@ public class MainActivity extends AppCompatActivity {
         };
 
         listView.setAdapter(adapter);
+
+        mDatabase.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                String value = dataSnapshot.getValue(String.class);
+                times.add( String.valueOf(Hours) + "h " + String.valueOf(Minutes) + "m" );
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         start.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -176,37 +215,66 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void saveData() {
-        times.add( String.valueOf(Hours) + "h " + String.valueOf(Minutes) + "m" );
-        adapter.notifyDataSetChanged();
+//        times.add( String.valueOf(Hours) + "h " + String.valueOf(Minutes) + "m" );
+//        adapter.notifyDataSetChanged();
 
         totalMinutes += UpdateTime;
         int time = (int) (totalMinutes / 60000);
         totalTimeView.setText( "" + time/60 + "h " + time%60 + "m " );
 
-        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        Gson gson = new Gson();
-        String json = gson.toJson(times);
-        editor.putString("task list", json);
-        editor.putInt("total time", totalMinutes);
-        editor.apply();
+//        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+//        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        Gson gson = new Gson();
+//        String json = gson.toJson(times);
+//        editor.putString("task list", json);
+//        editor.putInt("total time", totalMinutes);
+//        editor.apply();
+
+        mDatabase.push().setValue( String.valueOf(UpdateTime / 60000) ).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+                    Toast.makeText(MainActivity.this, "Stored", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "Error: Data not saved", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+//        HashMap<String, String> dataMap = new HashMap<String, String>();
+//        dataMap.put("Name", "Matthew");
+//        dataMap.put("Email", "matthew_d_barrett@hotmail.com");
+//
+//        mDatabase.push().setValue( dataMap ).addOnCompleteListener(new OnCompleteListener<Void>() {
+//            @Override
+//            public void onComplete(@NonNull Task<Void> task) {
+//
+//                if(task.isSuccessful()){
+//                    Toast.makeText(MainActivity.this, "Stored", Toast.LENGTH_LONG).show();
+//                } else {
+//                    Toast.makeText(MainActivity.this, "Error: Data not saved", Toast.LENGTH_LONG).show();
+//                }
+//
+//            }
+//        });
     }
 
-    private void loadData() {
-        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        Gson gson = new Gson();
-        String json = sharedPreferences.getString("task list", null);
-        Type type = new TypeToken<ArrayList<String>>() {}.getType();
-        times = gson.fromJson(json, type);
-
-        int tempTotTime = sharedPreferences.getInt("total time", -1);
-        int time = (int) (tempTotTime / 60000);
-        totalTimeView.setText( "" + time/60 + "h " + time%60 + "m " );
-
-        if (times == null){
-            times = new ArrayList<>();
-        }
-    }
+//    private void loadData() {
+//        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+//        Gson gson = new Gson();
+//        String json = sharedPreferences.getString("task list", null);
+//        Type type = new TypeToken<ArrayList<String>>() {}.getType();
+//        times = gson.fromJson(json, type);
+//
+//        int tempTotTime = sharedPreferences.getInt("total time", -1);
+//        int time = (int) (tempTotTime / 60000);
+//        totalTimeView.setText( "" + time/60 + "h " + time%60 + "m " );
+//
+//        if (times == null){
+//            times = new ArrayList<>();
+//        }
+//
+//    }
 
     private void clearData() {
         times.clear();
