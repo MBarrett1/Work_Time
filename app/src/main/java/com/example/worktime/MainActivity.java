@@ -38,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     int totalMinutes;
 
     ArrayList<String> times = new ArrayList<>();
+    ArrayList<String> mKeys = new ArrayList<>();
 
     TextView textView ;
     TextView moneyView;
@@ -99,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
                 return view;
             }
         };
-
         listView.setAdapter(adapter);
 
         mDatabase.addChildEventListener(new ChildEventListener() {
@@ -107,17 +107,27 @@ public class MainActivity extends AppCompatActivity {
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String value = dataSnapshot.getValue(String.class);
                 times.add( String.valueOf( Integer.valueOf(value)/60 ) + "h " + String.valueOf( Integer.valueOf(value)%60 ) + "m" );
+                String key = dataSnapshot.getKey();
+                mKeys.add(key);
                 adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
+                String value = dataSnapshot.getValue(String.class);
+                String key = dataSnapshot.getKey();
+                int index = mKeys.indexOf(key);
+                times.set(index, String.valueOf( Integer.valueOf(value)/60 ) + "h " + String.valueOf( Integer.valueOf(value)%60 ) + "m" );
+                adapter.notifyDataSetChanged();
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-
+                String key = dataSnapshot.getKey();
+                int index = mKeys.indexOf(key);
+                times.remove( index );
+                mKeys.remove( index );
+                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -277,14 +287,8 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
     private void clearData() {
-        times.clear();
-        adapter.notifyDataSetChanged();
-
-        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.clear();
-        editor.apply();
-
+        for (int i = 0; i < mKeys.size(); i++)
+            mDatabase.child( mKeys.get( i ) ).removeValue();
     }
 
     public Runnable runnable = new Runnable() {
