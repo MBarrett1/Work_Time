@@ -106,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 String value = dataSnapshot.getValue(String.class);
-                times.add( String.valueOf(Hours) + "h " + String.valueOf(Minutes) + "m" );
+                times.add( String.valueOf( Integer.valueOf(value)/60 ) + "h " + String.valueOf( Integer.valueOf(value)%60 ) + "m" );
                 adapter.notifyDataSetChanged();
             }
 
@@ -230,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
 //        editor.putInt("total time", totalMinutes);
 //        editor.apply();
 
-        mDatabase.push().setValue( String.valueOf(UpdateTime / 60000) ).addOnCompleteListener(new OnCompleteListener<Void>() {
+        mDatabase.child( String.valueOf( times.size() ) ).setValue( String.valueOf(UpdateTime / 60000) ).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()){
