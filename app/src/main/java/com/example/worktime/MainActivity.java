@@ -1,9 +1,10 @@
 package com.example.worktime;
+
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,23 +13,15 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.os.Handler;
-import android.widget.Toast;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 
-import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
 
     int totalMinutes;
 
+    boolean finishedCalled = false;
+
     ArrayList<String> times = new ArrayList<>();
     ArrayList<String> mKeys = new ArrayList<>();
 
@@ -44,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     TextView moneyView;
     TextView totalTimeView;
 
-    Button start, pause, reset, lap, clear, add ;
+    Button start, pause, reset, lap, clear, add;
 
     long MillisecondTime, StartTime, TimeBuff, UpdateTime = 0L ;
 
@@ -53,10 +48,6 @@ public class MainActivity extends AppCompatActivity {
     int Seconds, Minutes, MilliSeconds, Hours ;
 
     ListView listView ;
-
-    String[] ListElements = new String[] {  };
-
-    List<String> ListElementsArrayList ;
 
     ArrayAdapter<String> adapter ;
 
@@ -81,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler() ;
 
-//        loadData();
+        loadData();
 
         adapter = new ArrayAdapter<String>(MainActivity.this,
                 android.R.layout.simple_list_item_1, times) {
@@ -89,13 +80,10 @@ public class MainActivity extends AppCompatActivity {
             public View getView(int position, View convertView, ViewGroup parent){
                 // Get the Item from ListView
                 View view = super.getView(position, convertView, parent);
-
                 // Initialize a TextView for ListView each Item
                 TextView tv = (TextView) view.findViewById(android.R.id.text1);
-
                 // Set the text color of TextView (ListView Item)
                 tv.setTextColor(Color.WHITE);
-
                 // Generate ListView Item using TextView
                 return view;
             }
@@ -105,20 +93,30 @@ public class MainActivity extends AppCompatActivity {
         mDatabase.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                String value = dataSnapshot.getValue(String.class);
-                times.add( String.valueOf( Integer.valueOf(value)/60 ) + "h " + String.valueOf( Integer.valueOf(value)%60 ) + "m" );
-                String key = dataSnapshot.getKey();
-                mKeys.add(key);
-                adapter.notifyDataSetChanged();
+                if ( !finishedCalled ) {
+                    String mins = dataSnapshot.child("minutes").getValue(String.class);
+                    String date = dataSnapshot.child("date").getValue(String.class);
+                    String startTime = dataSnapshot.child("startTime").getValue(String.class);
+                    String endTime = dataSnapshot.child("endTime").getValue(String.class);
+                    times.add(String.valueOf(Integer.valueOf(mins) / 60) + "h " + String.valueOf(Integer.valueOf(mins) % 60) + "m " + "| " + startTime + " - " + endTime + " | " + date);
+                    String key = dataSnapshot.getKey();
+                    mKeys.add(key);
+                    adapter.notifyDataSetChanged();
+                }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                String value = dataSnapshot.getValue(String.class);
-                String key = dataSnapshot.getKey();
-                int index = mKeys.indexOf(key);
-                times.set(index, String.valueOf( Integer.valueOf(value)/60 ) + "h " + String.valueOf( Integer.valueOf(value)%60 ) + "m" );
-                adapter.notifyDataSetChanged();
+                String mins = dataSnapshot.child("minutes").getValue(String.class);
+                String date = dataSnapshot.child("date").getValue(String.class);
+                String startTime = dataSnapshot.child("startTime").getValue(String.class);
+                String endTime = dataSnapshot.child("endTime").getValue(String.class);
+                if (mins != null && date != null && startTime != null && endTime != null ) {
+                    times.add(String.valueOf(Integer.valueOf(mins) / 60) + "h " + String.valueOf(Integer.valueOf(mins) % 60) + "m " + "| " + startTime + " - " + endTime + " | " + date);
+                    String key = dataSnapshot.getKey();
+                    mKeys.add(key);
+                    adapter.notifyDataSetChanged();
+                }
             }
 
             @Override
@@ -148,8 +146,6 @@ public class MainActivity extends AppCompatActivity {
                 StartTime = SystemClock.uptimeMillis();
                 handler.postDelayed(runnable, 0);
 
-                reset.setEnabled(false);
-
             }
         });
 
@@ -170,6 +166,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                TimeBuff += MillisecondTime;
+
+                handler.removeCallbacks(runnable);
+
+                reset.setEnabled(true);
+
                 MillisecondTime = 0L;
                 StartTime = 0L;
                 TimeBuff = 0L;
@@ -181,10 +183,6 @@ public class MainActivity extends AppCompatActivity {
                 textView.setText("0h 0m 00s");
                 moneyView.setText("$0.00");
 
-//                ListElementsArrayList.clear();
-
-//                adapter.notifyDataSetChanged();
-
             }
         });
 
@@ -194,6 +192,7 @@ public class MainActivity extends AppCompatActivity {
 
                 clearData();
                 totalTimeView.setText( "0h 0m" );
+                totalMinutes = 0;
 
             }
         });
@@ -204,7 +203,7 @@ public class MainActivity extends AppCompatActivity {
 
                 int minute = 60000;
 
-                TimeBuff += minute * 10;
+                TimeBuff += minute * 5;
 
             }
         });
@@ -215,76 +214,65 @@ public class MainActivity extends AppCompatActivity {
 
                 if( Seconds > 0 ) {
 
+                    finishedCalled = true;
                     saveData();
+
+                    TimeBuff += MillisecondTime;
+
+                    handler.removeCallbacks(runnable);
+
+                    reset.setEnabled(true);
+
+                    MillisecondTime = 0L;
+                    StartTime = 0L;
+                    TimeBuff = 0L;
+                    UpdateTime = 0L;
+                    Seconds = 0;
+                    Minutes = 0;
+                    MilliSeconds = 0;
+
+                    textView.setText("0h 0m 00s");
+                    moneyView.setText("$0.00");
 
                 }
 
             }
         });
 
+    }
+
+    private void loadData() {
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        totalMinutes = sharedPreferences.getInt("minutes", 0);
+        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
     }
 
     private void saveData() {
-//        times.add( String.valueOf(Hours) + "h " + String.valueOf(Minutes) + "m" );
-//        adapter.notifyDataSetChanged();
 
-        totalMinutes += UpdateTime;
-        int time = (int) (totalMinutes / 60000);
-        totalTimeView.setText( "" + time/60 + "h " + time%60 + "m " );
+        Date c = Calendar.getInstance().getTime();
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
+        String formattedDate = df.format(c);
 
-//        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        Gson gson = new Gson();
-//        String json = gson.toJson(times);
-//        editor.putString("task list", json);
-//        editor.putInt("total time", totalMinutes);
-//        editor.apply();
+        SimpleDateFormat tf = new SimpleDateFormat("HH:mm");
+        String endTime = tf.format(Calendar.getInstance().getTime());
 
-        mDatabase.child( String.valueOf( times.size() ) ).setValue( String.valueOf(UpdateTime / 60000) ).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
-                    Toast.makeText(MainActivity.this, "Stored", Toast.LENGTH_LONG).show();
-                } else {
-                    Toast.makeText(MainActivity.this, "Error: Data not saved", Toast.LENGTH_LONG).show();
-                }
-            }
-        });
+        String startTime = tf.format( new Date(System.currentTimeMillis() - 60000 * (UpdateTime/60000) ));
 
-//        HashMap<String, String> dataMap = new HashMap<String, String>();
-//        dataMap.put("Name", "Matthew");
-//        dataMap.put("Email", "matthew_d_barrett@hotmail.com");
-//
-//        mDatabase.push().setValue( dataMap ).addOnCompleteListener(new OnCompleteListener<Void>() {
-//            @Override
-//            public void onComplete(@NonNull Task<Void> task) {
-//
-//                if(task.isSuccessful()){
-//                    Toast.makeText(MainActivity.this, "Stored", Toast.LENGTH_LONG).show();
-//                } else {
-//                    Toast.makeText(MainActivity.this, "Error: Data not saved", Toast.LENGTH_LONG).show();
-//                }
-//
-//            }
-//        });
+        DatabaseReference current_id = mDatabase.child( String.valueOf( mKeys.size() ) );
+        current_id.child("minutes").setValue( String.valueOf(UpdateTime / 60000) );
+        current_id.child("date").setValue( formattedDate );
+        current_id.child("startTime").setValue( startTime );
+        current_id.child("endTime").setValue( endTime );
+
+        totalMinutes += UpdateTime / 60000;
+        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
+
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt("minutes", totalMinutes);
+        editor.apply();
+
     }
-
-//    private void loadData() {
-//        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-//        Gson gson = new Gson();
-//        String json = sharedPreferences.getString("task list", null);
-//        Type type = new TypeToken<ArrayList<String>>() {}.getType();
-//        times = gson.fromJson(json, type);
-//
-//        int tempTotTime = sharedPreferences.getInt("total time", -1);
-//        int time = (int) (tempTotTime / 60000);
-//        totalTimeView.setText( "" + time/60 + "h " + time%60 + "m " );
-//
-//        if (times == null){
-//            times = new ArrayList<>();
-//        }
-//
-//    }
 
     private void clearData() {
         for (int i = 0; i < mKeys.size(); i++)
@@ -311,10 +299,6 @@ public class MainActivity extends AppCompatActivity {
 
             MilliSeconds = (int) (UpdateTime % 1000);
 
-//            textView.setText("" + Minutes + ":"
-//                    + String.format("%02d", Seconds) + ":"
-//                    + String.format("%03d", MilliSeconds));
-
             textView.setText("" + Hours + "h " + Minutes + "m "
                     + String.format("%02d", Seconds) + "s" );
 
@@ -324,9 +308,6 @@ public class MainActivity extends AppCompatActivity {
             int cents = moneyTime % 100;
 
             moneyView.setText("" + "$"+ dollars + "." + cents );
-
-//            totalTime = "" + Hours + "h " + Minutes + "m ";
-//            totalTimeView.setText( totalTime );
 
             handler.postDelayed(this, 0);
         }
