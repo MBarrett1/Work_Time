@@ -157,6 +157,15 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
+                SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = resetPrefs.edit();
+
+                editor.putLong("startTime", StartTime);
+                editor.putLong("timeBuff", TimeBuff);
+                editor.putBoolean("running", timeRunning);
+
+                editor.apply();
+
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
 
@@ -268,25 +277,32 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-
+    
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    protected void onStop() {
+        super.onStop();
 
-        outState.putLong("startTime", StartTime);
-        outState.putLong("timeBuff", TimeBuff);
-        outState.putBoolean("running", timeRunning);
+        SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = resetPrefs.edit();
+
+        editor.putLong("startTime", StartTime);
+        editor.putLong("timeBuff", TimeBuff);
+        editor.putBoolean("running", timeRunning);
+
+        editor.apply();
+//        Toast.makeText(getBaseContext(), "SAVED by onStop", Toast.LENGTH_LONG).show();
     }
 
     @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
+    protected void onStart() {
+        super.onStart();
 
-        timeRunning = savedInstanceState.getBoolean("running");
-        TimeBuff = savedInstanceState.getLong("timeBuff");
+        SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
 
-        if ( !timeRunning && TimeBuff > 0 ) {
+        timeRunning = resetPrefs.getBoolean("running", false);
+        TimeBuff = resetPrefs.getLong("timeBuff", 0L);
 
+        if ( !timeRunning && TimeBuff != 0 ) {
             UpdateTime = TimeBuff;
             int secondTime = (int) (UpdateTime / 1000);
             Seconds = secondTime % 60;
@@ -303,11 +319,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if ( timeRunning ) {
-
-            StartTime = savedInstanceState.getLong("startTime");
+            StartTime = resetPrefs.getLong("startTime", 0L);
             handler.postDelayed(runnable, 0);
-//            Toast.makeText(getBaseContext(), "Data loaded as: " + StartTime, Toast.LENGTH_LONG).show();
-
         }
     }
 
