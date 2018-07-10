@@ -156,31 +156,17 @@ public class MainActivity extends AppCompatActivity {
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
-                SharedPreferences.Editor editor = resetPrefs.edit();
-
-                editor.putLong("startTime", StartTime);
-                editor.putLong("timeBuff", TimeBuff);
-                editor.putBoolean("running", timeRunning);
-
-                editor.apply();
-
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
-
             }
         });
 
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-
                 setIncome();
                 StartTime = SystemClock.uptimeMillis();
                 handler.postDelayed(runnable, 0);
-
             }
         });
 
@@ -277,20 +263,23 @@ public class MainActivity extends AppCompatActivity {
         });
 
     }
-    
+
     @Override
     protected void onStop() {
         super.onStop();
+        savePrefs();
+    }
 
-        SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = resetPrefs.edit();
+    @Override
+    protected void onPause() {
+        super.onPause();
+        savePrefs();
+    }
 
-        editor.putLong("startTime", StartTime);
-        editor.putLong("timeBuff", TimeBuff);
-        editor.putBoolean("running", timeRunning);
-
-        editor.apply();
-//        Toast.makeText(getBaseContext(), "SAVED by onStop", Toast.LENGTH_LONG).show();
+    @Override
+    protected void onResume() {
+        super.onResume();
+        savePrefs();
     }
 
     @Override
@@ -304,24 +293,24 @@ public class MainActivity extends AppCompatActivity {
 
         if ( !timeRunning && TimeBuff != 0 ) {
             UpdateTime = TimeBuff;
-            int secondTime = (int) (UpdateTime / 1000);
-            Seconds = secondTime % 60;
-            int time = (int) (UpdateTime / 60000);
-            Hours = time / 60;
-            Minutes = time % 60;
-            MilliSeconds = (int) (UpdateTime % 1000);
-            textView.setText("" + Hours + "h " + Minutes + "m "
-                    + String.format("%02d", Seconds) + "s" );
-            int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
-            int dollars = moneyTime / 100;
-            int cents = moneyTime % 100;
-            moneyView.setText("" + "$"+ dollars + "." + cents );
+            setTime();
         }
 
         if ( timeRunning ) {
             StartTime = resetPrefs.getLong("startTime", 0L);
             handler.postDelayed(runnable, 0);
         }
+    }
+
+    private void savePrefs() {
+        SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = resetPrefs.edit();
+
+        editor.putLong("startTime", StartTime);
+        editor.putLong("timeBuff", TimeBuff);
+        editor.putBoolean("running", timeRunning);
+
+        editor.apply();
     }
 
     private void loadData() {
@@ -373,6 +362,21 @@ public class MainActivity extends AppCompatActivity {
         timeRunning = false;
     }
 
+    private void setTime() {
+        int secondTime = (int) (UpdateTime / 1000);
+        Seconds = secondTime % 60;
+        int time = (int) (UpdateTime / 60000);
+        Hours = time / 60;
+        Minutes = time % 60;
+        MilliSeconds = (int) (UpdateTime % 1000);
+        textView.setText("" + Hours + "h " + Minutes + "m "
+                + String.format("%02d", Seconds) + "s" );
+        int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
+        int dollars = moneyTime / 100;
+        int cents = moneyTime % 100;
+        moneyView.setText("" + "$"+ dollars + "." + cents );
+    }
+
     public Runnable runnable = new Runnable() {
 
         public void run() {
@@ -383,27 +387,7 @@ public class MainActivity extends AppCompatActivity {
 
             UpdateTime = TimeBuff + MillisecondTime;
 
-            int secondTime = (int) (UpdateTime / 1000);
-
-            Seconds = secondTime % 60;
-
-            int time = (int) (UpdateTime / 60000);
-
-            Hours = time / 60;
-
-            Minutes = time % 60;
-
-            MilliSeconds = (int) (UpdateTime % 1000);
-
-            textView.setText("" + Hours + "h " + Minutes + "m "
-                    + String.format("%02d", Seconds) + "s" );
-
-            int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
-
-            int dollars = moneyTime / 100;
-            int cents = moneyTime % 100;
-
-            moneyView.setText("" + "$"+ dollars + "." + cents );
+            setTime();
 
             handler.postDelayed(this, 0);
         }
