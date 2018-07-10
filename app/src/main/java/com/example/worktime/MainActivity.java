@@ -1,18 +1,24 @@
 package com.example.worktime;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.icu.util.Calendar;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.os.Handler;
+import android.widget.Toast;
+
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
 
     int totalMinutes;
 
+    int hourlyIncome;
+
     boolean finishedCalled = false;
 
     ArrayList<String> times = new ArrayList<>();
@@ -40,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     TextView totalTimeView;
 
     Button start, pause, reset, lap, clear, add;
+    ImageButton settings;
 
     long MillisecondTime, StartTime, TimeBuff, UpdateTime = 0L ;
 
@@ -68,10 +77,12 @@ public class MainActivity extends AppCompatActivity {
         lap = (Button)findViewById(R.id.button4) ;
         clear = (Button)findViewById(R.id.button5) ;
         add = (Button)findViewById(R.id.button6) ;
+        settings = (ImageButton)findViewById(R.id.settingsBtn);
         listView = (ListView)findViewById(R.id.listview1);
 
         handler = new Handler() ;
 
+        setIncome();
         loadData();
 
         adapter = new ArrayAdapter<String>(MainActivity.this,
@@ -139,10 +150,22 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+
+            }
+        });
+
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
+
+                setIncome();
                 StartTime = SystemClock.uptimeMillis();
                 handler.postDelayed(runnable, 0);
 
@@ -302,7 +325,7 @@ public class MainActivity extends AppCompatActivity {
             textView.setText("" + Hours + "h " + Minutes + "m "
                     + String.format("%02d", Seconds) + "s" );
 
-            int moneyTime = (int) (UpdateTime / 1800);
+            int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
 
             int dollars = moneyTime / 100;
             int cents = moneyTime % 100;
@@ -314,4 +337,10 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
+    public void setIncome(){
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        hourlyIncome = sharedPreferences.getInt("hourly_income",0);
+    }
+
 }
+

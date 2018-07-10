@@ -1,3 +1,4 @@
 <resources>
-    <string name="app_name">Work Time</string>
+    <string name="app_name">WorkTime</string>
+    <string name="incomePrompt">Set hourly income :</string>
 </resources>
