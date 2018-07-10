@@ -2,6 +2,7 @@ package com.example.worktime;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.icu.util.Calendar;
 import android.media.Image;
@@ -26,6 +27,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     int hourlyIncome;
 
     boolean finishedCalled = false;
+    boolean timeRunning = false;
 
     ArrayList<String> times = new ArrayList<>();
     ArrayList<String> mKeys = new ArrayList<>();
@@ -182,6 +185,8 @@ public class MainActivity extends AppCompatActivity {
 
                 reset.setEnabled(true);
 
+                timeRunning = false;
+
             }
         });
 
@@ -205,6 +210,8 @@ public class MainActivity extends AppCompatActivity {
 
                 textView.setText("0h 0m 00s");
                 moneyView.setText("$0.00");
+
+                timeRunning = false;
 
             }
         });
@@ -262,10 +269,52 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        outState.putLong("startTime", StartTime);
+        outState.putLong("timeBuff", TimeBuff);
+        outState.putBoolean("running", timeRunning);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        timeRunning = savedInstanceState.getBoolean("running");
+        TimeBuff = savedInstanceState.getLong("timeBuff");
+
+        if ( !timeRunning && TimeBuff > 0 ) {
+
+            UpdateTime = TimeBuff;
+            int secondTime = (int) (UpdateTime / 1000);
+            Seconds = secondTime % 60;
+            int time = (int) (UpdateTime / 60000);
+            Hours = time / 60;
+            Minutes = time % 60;
+            MilliSeconds = (int) (UpdateTime % 1000);
+            textView.setText("" + Hours + "h " + Minutes + "m "
+                    + String.format("%02d", Seconds) + "s" );
+            int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
+            int dollars = moneyTime / 100;
+            int cents = moneyTime % 100;
+            moneyView.setText("" + "$"+ dollars + "." + cents );
+        }
+
+        if ( timeRunning ) {
+
+            StartTime = savedInstanceState.getLong("startTime");
+            handler.postDelayed(runnable, 0);
+//            Toast.makeText(getBaseContext(), "Data loaded as: " + StartTime, Toast.LENGTH_LONG).show();
+
+        }
+    }
+
     private void loadData() {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         totalMinutes = sharedPreferences.getInt("minutes", 0);
-        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
+//        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
     }
 
     private void saveData() {
@@ -307,11 +356,15 @@ public class MainActivity extends AppCompatActivity {
         editor.putInt("minutes", 0).apply();
 
         totalTimeView.setText( "" + 0 + "h " + 0 + "m " );
+
+        timeRunning = false;
     }
 
     public Runnable runnable = new Runnable() {
 
         public void run() {
+
+            timeRunning = true;
 
             MillisecondTime = SystemClock.uptimeMillis() - StartTime;
 

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1002419989917",
+    "firebase_url": "https://worktime-26aba.firebaseio.com",
+    "project_id": "worktime-26aba",
+    "storage_bucket": "worktime-26aba.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1002419989917:android:fc904a7347d47906",
+        "android_client_info": {
+          "package_name": "com.example.worktime"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1002419989917-4n1hv95pb4aph82t9u9sfnvueptefj7c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.worktime",
+            "certificate_hash": "4678140c905fe7594daafdeb5420797299d9a0f6"
+          }
+        },
+        {
+          "client_id": "1002419989917-g4o485vmkbdh2epbdkomm15qh55i8sv5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCYo940C3Na0hRrPb4faUdObPlmtZxlNwE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1002419989917-g4o485vmkbdh2epbdkomm15qh55i8sv5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
