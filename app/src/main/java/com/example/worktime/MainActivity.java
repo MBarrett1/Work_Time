@@ -214,8 +214,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 clearData();
-                totalTimeView.setText( "0h 0m" );
-                totalMinutes = 0;
 
             }
         });
@@ -298,8 +296,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void clearData() {
+        totalTimeView.setText( "0h 0m" );
+        totalMinutes = 0;
+
         for (int i = 0; i < mKeys.size(); i++)
             mDatabase.child( mKeys.get( i ) ).removeValue();
+
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putInt("minutes", 0).apply();
+
+        totalTimeView.setText( "" + 0 + "h " + 0 + "m " );
     }
 
     public Runnable runnable = new Runnable() {
