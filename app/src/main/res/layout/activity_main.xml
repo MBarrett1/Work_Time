@@ -22,15 +22,15 @@
         app:srcCompat="@mipmap/settings" />
 
     <TextView
-    android:id="@+id/textView"
+    android:id="@+id/timeView"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_above="@+id/moneyView"
     android:layout_centerHorizontal="true"
     android:layout_marginBottom="-76dp"
-    android:text="0h 0m 00s"
-    android:textColor="#FFFFFF"
-    android:textSize="50dp" />
+    android:text="@string/timeText"
+    android:textSize="25dp"
+    android:textColor="#FFFFFF" />
 
     <TextView
         android:id="@+id/totalTimeView"

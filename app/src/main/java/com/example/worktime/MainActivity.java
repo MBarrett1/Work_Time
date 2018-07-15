@@ -13,6 +13,8 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.SpannableString;
+import android.text.style.RelativeSizeSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,37 +44,28 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
-    final Context context = this;
-
     private DatabaseReference mDatabase;
-
     int totalMinutes;
-
     int hourlyIncome;
-
+    int Seconds, Minutes, MilliSeconds, Hours ;
     boolean finishedCalled = false;
     boolean timeRunning = false;
     boolean dataSaved = false;
-
     String symbol = "$";
+    long MillisecondTime, StartTime, TimeBuff, UpdateTime = 0L ;
+    final Context context = this;
 
     ArrayList<String> times = new ArrayList<>();
     ArrayList<String> mKeys = new ArrayList<>();
 
-    TextView textView ;
+    TextView timeView ;
     TextView moneyView;
     TextView totalTimeView;
-
     Button start, pause, reset, lap, clear, add;
     ImageButton settings;
-
-    long MillisecondTime, StartTime, TimeBuff, UpdateTime = 0L ;
+    ListView listView ;
 
     Handler handler;
-
-    int Seconds, Minutes, MilliSeconds, Hours ;
-
-    ListView listView ;
 
     ArrayAdapter<String> adapter ;
 
@@ -83,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        textView = (TextView)findViewById(R.id.textView);
+        timeView = (TextView)findViewById(R.id.timeView);
         moneyView = (TextView)findViewById(R.id.moneyView);
         totalTimeView = (TextView)findViewById(R.id.totalTimeView);
 
@@ -98,58 +91,22 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler() ;
 
-        setIncome();
-        setCurrency();
-        loadPrefs();
-
         adapter = new ArrayAdapter<String>(MainActivity.this,
                 android.R.layout.simple_list_item_1, times) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent){
-                // Get the Item from ListView
                 View view = super.getView(position, convertView, parent);
-                // Initialize a TextView for ListView each Item
                 TextView tv = (TextView) view.findViewById(android.R.id.text1);
-                // Set the text color of TextView (ListView Item)
                 tv.setTextColor(Color.WHITE);
-                // Generate ListView Item using TextView
                 return view;
             }
         };
+
         listView.setAdapter(adapter);
 
-        mDatabase.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                if ( !finishedCalled ) {
-                    loadSnapshot(dataSnapshot);
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                loadSnapshot(dataSnapshot);
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-//                String key = dataSnapshot.getKey();
-//                int index = mKeys.indexOf(key);
-//                times.remove( index );
-//                mKeys.remove( index );
-//                adapter.notifyDataSetChanged();
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
+        setIncome();
+        setCurrency();
+        loadPrefs();
 
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -173,11 +130,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 TimeBuff += MillisecondTime;
-
                 handler.removeCallbacks(runnable);
-
                 reset.setEnabled(true);
-
                 timeRunning = false;
 
             }
@@ -201,7 +155,7 @@ public class MainActivity extends AppCompatActivity {
                 Minutes = 0;
                 MilliSeconds = 0;
 
-                textView.setText("0h 0m 00s");
+                setTimeView( true );
                 moneyView.setText(symbol + "0.00");
 
                 timeRunning = false;
@@ -256,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                if( Minutes > 0 ) {
+                if( Minutes > 0 || Hours > 0) {
 
                     timeRunning = false;
                     finishedCalled = true;
@@ -277,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
                     Minutes = 0;
                     MilliSeconds = 0;
 
-                    textView.setText("0h 0m 00s");
+                   setTimeView( true );
                     moneyView.setText(symbol + "0.00");
 
                 } else if ( timeRunning ) {
@@ -301,27 +255,10 @@ public class MainActivity extends AppCompatActivity {
         savePrefs();
     }
 
-//    @Override
-//    protected void onResume() {
-//        super.onResume();
-//        loadPrefs();
-//    }
-
     @Override
     protected void onStart() {
         super.onStart();
         loadPrefs();
-    }
-
-    private void loadSnapshot(DataSnapshot dataSnapshot) {
-//        String mins = dataSnapshot.child("minutes").getValue(String.class);
-//        String date = dataSnapshot.child("date").getValue(String.class);
-//        String startTime = dataSnapshot.child("startTime").getValue(String.class);
-//        String endTime = dataSnapshot.child("endTime").getValue(String.class);
-//        if (mins != null && date != null && startTime != null && endTime != null ) {
-//            times.add(String.valueOf(Integer.valueOf(mins) / 60) + "h " + String.valueOf(Integer.valueOf(mins) % 60) + "m " + "| " + startTime + " - " + endTime + " | " + date);
-//            adapter.notifyDataSetChanged();
-//        }
     }
 
     private void loadPrefs() {
@@ -464,8 +401,7 @@ public class MainActivity extends AppCompatActivity {
         Hours = time / 60;
         Minutes = time % 60;
         MilliSeconds = (int) (UpdateTime % 1000);
-        textView.setText("" + Hours + "h " + Minutes + "m "
-                + String.format("%02d", Seconds) + "s" );
+        setTimeView( false );
         int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
         int dollars = moneyTime / 100;
         int cents = moneyTime % 100;
@@ -475,28 +411,87 @@ public class MainActivity extends AppCompatActivity {
     public Runnable runnable = new Runnable() {
 
         public void run() {
-
             timeRunning = true;
-
             MillisecondTime = SystemClock.uptimeMillis() - StartTime;
-
             UpdateTime = TimeBuff + MillisecondTime;
-
             setTime();
-
             handler.postDelayed(this, 0);
         }
 
     };
 
-    public void setIncome(){
+    public void setIncome() {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         hourlyIncome = sharedPreferences.getInt("hourly_income",0);
     }
 
-    public void setCurrency(){
+    public void setCurrency() {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         symbol = sharedPreferences.getString("currency","$");
+    }
+
+//    public void setTimeView(boolean reset) {
+//
+//        String s;
+//        if ( reset ) {
+//            s = "0h 0m 0s";
+//        } else {
+//            s = "" + Hours + "h " + Minutes + "m " + String.format("%02d", Seconds) + "s";
+//        }
+//        SpannableString ss1 = new SpannableString(s);
+//        ss1.setSpan(new RelativeSizeSpan(2f), 0, 1, 0);
+//        ss1.setSpan(new RelativeSizeSpan(2f), 3, 4, 0);
+//        ss1.setSpan(new RelativeSizeSpan(2f), 5, 7, 0);
+//        timeView.setText( ss1 );
+//    }
+
+    public void setTimeView(boolean reset) {
+
+        String s;
+        if ( reset ) {
+            s = "0h 0m 0s";
+            SpannableString ss1 = new SpannableString(s);
+            ss1.setSpan(new RelativeSizeSpan(2f), 0, 1, 0);
+            ss1.setSpan(new RelativeSizeSpan(2f), 3, 4, 0);
+            ss1.setSpan(new RelativeSizeSpan(2f), 6, 7, 0);
+            timeView.setText( ss1 );
+        } else {
+            s = Hours + "h " + Minutes + "m " + Seconds + "s";
+            SpannableString ss1 = new SpannableString(s);
+            if ( Hours < 10 && Minutes < 10 && Seconds < 10 ) { // 0h 0m 0s
+                ss1.setSpan(new RelativeSizeSpan(2f), 0, 1, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 3, 4, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 6, 7, 0);}
+            if ( Hours < 10 && Minutes < 10 && Seconds >= 10 ) { // 0h 0m 00s
+                ss1.setSpan(new RelativeSizeSpan(2f), 0, 1, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 3, 4, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 6, 8, 0);}
+            if ( Hours < 10 && Minutes >= 10 && Seconds < 10 ) { // 0h 00m 0s
+                ss1.setSpan(new RelativeSizeSpan(2f), 0, 1, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 3, 5, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 7, 8, 0);}
+            if ( Hours >= 10 && Minutes < 10 && Seconds < 10 ) { // 00h 0m 0s
+                ss1.setSpan(new RelativeSizeSpan(2f), 0, 2, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 4, 5, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 7, 8, 0);}
+            if ( Hours < 10 && Minutes >= 10 && Seconds >= 10 ) { // 0h 00m 00s
+                ss1.setSpan(new RelativeSizeSpan(2f), 0, 1, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 3, 5, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 7, 9, 0);}
+            if ( Hours >= 10 && Minutes >= 10 && Seconds < 10 ) { // 00h 00m 0s
+                ss1.setSpan(new RelativeSizeSpan(2f), 0, 2, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 4, 6, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 8, 9, 0);}
+            if ( Hours >= 10 && Minutes < 10 && Seconds >= 10 ) { // 00h 0m 00s
+                ss1.setSpan(new RelativeSizeSpan(2f), 0, 2, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 4, 5, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 7, 9, 0);}
+            if ( Hours >= 10 && Minutes >= 10 && Seconds >= 10 ) { // 00h 00m 00s
+                ss1.setSpan(new RelativeSizeSpan(2f), 0, 2, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 4, 6, 0);
+                ss1.setSpan(new RelativeSizeSpan(2f), 8, 10, 0);}
+            timeView.setText( ss1 );
+        }
     }
 
 }
