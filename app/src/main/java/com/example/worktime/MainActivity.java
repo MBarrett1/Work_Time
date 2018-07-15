@@ -1,5 +1,7 @@
 package com.example.worktime;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -9,7 +11,9 @@ import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -26,13 +30,19 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Type;
 import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ArrayList;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
+
+    final Context context = this;
 
     private DatabaseReference mDatabase;
 
@@ -42,6 +52,9 @@ public class MainActivity extends AppCompatActivity {
 
     boolean finishedCalled = false;
     boolean timeRunning = false;
+    boolean dataSaved = false;
+
+    String symbol = "$";
 
     ArrayList<String> times = new ArrayList<>();
     ArrayList<String> mKeys = new ArrayList<>();
@@ -86,7 +99,8 @@ public class MainActivity extends AppCompatActivity {
         handler = new Handler() ;
 
         setIncome();
-        loadData();
+        setCurrency();
+        loadPrefs();
 
         adapter = new ArrayAdapter<String>(MainActivity.this,
                 android.R.layout.simple_list_item_1, times) {
@@ -108,38 +122,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 if ( !finishedCalled ) {
-                    String mins = dataSnapshot.child("minutes").getValue(String.class);
-                    String date = dataSnapshot.child("date").getValue(String.class);
-                    String startTime = dataSnapshot.child("startTime").getValue(String.class);
-                    String endTime = dataSnapshot.child("endTime").getValue(String.class);
-                    times.add(String.valueOf(Integer.valueOf(mins) / 60) + "h " + String.valueOf(Integer.valueOf(mins) % 60) + "m " + "| " + startTime + " - " + endTime + " | " + date);
-                    String key = dataSnapshot.getKey();
-                    mKeys.add(key);
-                    adapter.notifyDataSetChanged();
+                    loadSnapshot(dataSnapshot);
                 }
             }
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                String mins = dataSnapshot.child("minutes").getValue(String.class);
-                String date = dataSnapshot.child("date").getValue(String.class);
-                String startTime = dataSnapshot.child("startTime").getValue(String.class);
-                String endTime = dataSnapshot.child("endTime").getValue(String.class);
-                if (mins != null && date != null && startTime != null && endTime != null ) {
-                    times.add(String.valueOf(Integer.valueOf(mins) / 60) + "h " + String.valueOf(Integer.valueOf(mins) % 60) + "m " + "| " + startTime + " - " + endTime + " | " + date);
-                    String key = dataSnapshot.getKey();
-                    mKeys.add(key);
-                    adapter.notifyDataSetChanged();
-                }
+                loadSnapshot(dataSnapshot);
             }
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-                String key = dataSnapshot.getKey();
-                int index = mKeys.indexOf(key);
-                times.remove( index );
-                mKeys.remove( index );
-                adapter.notifyDataSetChanged();
+//                String key = dataSnapshot.getKey();
+//                int index = mKeys.indexOf(key);
+//                times.remove( index );
+//                mKeys.remove( index );
+//                adapter.notifyDataSetChanged();
             }
 
             @Override
@@ -204,7 +202,7 @@ public class MainActivity extends AppCompatActivity {
                 MilliSeconds = 0;
 
                 textView.setText("0h 0m 00s");
-                moneyView.setText("$0.00");
+                moneyView.setText(symbol + "0.00");
 
                 timeRunning = false;
 
@@ -215,8 +213,31 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                clearData();
+                LayoutInflater li = LayoutInflater.from(context);
+                View promptsView = li.inflate(R.layout.warning_reset, null);
 
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
+                        context);
+
+                alertDialogBuilder.setView(promptsView);
+
+                alertDialogBuilder
+                        .setCancelable(false)
+                        .setPositiveButton("OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog,int id) {
+                                        clearData();
+                                    }
+                                })
+                        .setNegativeButton("Cancel",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog,int id) {
+                                        dialog.cancel();
+                                    }
+                                });
+
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
             }
         });
 
@@ -235,9 +256,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                if( Seconds > 0 ) {
+                if( Minutes > 0 ) {
 
+                    timeRunning = false;
                     finishedCalled = true;
+                    dataSaved = true;
                     saveData();
 
                     TimeBuff += MillisecondTime;
@@ -255,8 +278,10 @@ public class MainActivity extends AppCompatActivity {
                     MilliSeconds = 0;
 
                     textView.setText("0h 0m 00s");
-                    moneyView.setText("$0.00");
+                    moneyView.setText(symbol + "0.00");
 
+                } else if ( timeRunning ) {
+                    Toast.makeText(getApplicationContext(),"total time must be greater than 1 minute",Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -276,19 +301,38 @@ public class MainActivity extends AppCompatActivity {
         savePrefs();
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        savePrefs();
-    }
+//    @Override
+//    protected void onResume() {
+//        super.onResume();
+//        loadPrefs();
+//    }
 
     @Override
     protected void onStart() {
         super.onStart();
+        loadPrefs();
+    }
+
+    private void loadSnapshot(DataSnapshot dataSnapshot) {
+//        String mins = dataSnapshot.child("minutes").getValue(String.class);
+//        String date = dataSnapshot.child("date").getValue(String.class);
+//        String startTime = dataSnapshot.child("startTime").getValue(String.class);
+//        String endTime = dataSnapshot.child("endTime").getValue(String.class);
+//        if (mins != null && date != null && startTime != null && endTime != null ) {
+//            times.add(String.valueOf(Integer.valueOf(mins) / 60) + "h " + String.valueOf(Integer.valueOf(mins) % 60) + "m " + "| " + startTime + " - " + endTime + " | " + date);
+//            adapter.notifyDataSetChanged();
+//        }
+    }
+
+    private void loadPrefs() {
+
+        loadData();
+
+        moneyView.setText(symbol + "0.00");
 
         SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
-
         timeRunning = resetPrefs.getBoolean("running", false);
+        dataSaved = resetPrefs.getBoolean("dataSaved", false);
         TimeBuff = resetPrefs.getLong("timeBuff", 0L);
 
         if ( !timeRunning && TimeBuff != 0 ) {
@@ -305,18 +349,44 @@ public class MainActivity extends AppCompatActivity {
     private void savePrefs() {
         SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = resetPrefs.edit();
-
         editor.putLong("startTime", StartTime);
         editor.putLong("timeBuff", TimeBuff);
         editor.putBoolean("running", timeRunning);
+        editor.putBoolean("dataSaved", dataSaved);
+
+        Gson gson = new Gson();
+        String json = gson.toJson( mKeys );
+        editor.putString("mKeys", json);
 
         editor.apply();
     }
 
     private void loadData() {
-        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        totalMinutes = sharedPreferences.getInt("minutes", 0);
-//        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
+        SharedPreferences sharedPreferences = getSharedPreferences("savedPrefs", MODE_PRIVATE);
+        totalMinutes = sharedPreferences.getInt("totalMinutes", 0);
+        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
+
+        if ( dataSaved ) {
+
+            SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
+            Gson gson = new Gson();
+            String json = resetPrefs.getString("mKeys", null);
+            Type type = new TypeToken<ArrayList<String>>() {}.getType();
+            mKeys = gson.fromJson(json, type);
+
+            for (int i = 0; i < mKeys.size(); i++) {
+                String key = "savedPrefs" + i;
+                SharedPreferences savedPrefs = getSharedPreferences(key, MODE_PRIVATE);
+                String mins = savedPrefs.getString("minutes", "");
+                String date = savedPrefs.getString("date", "");
+                String startTime = savedPrefs.getString("startTime", "");
+                String endTime = savedPrefs.getString("endTime", "");
+                if (mins != null && date != null && startTime != null && endTime != null) {
+                    times.add(String.valueOf(Integer.valueOf(mins) / 60) + "h " + String.valueOf(Integer.valueOf(mins) % 60) + "m " + "| " + startTime + " - " + endTime + " | " + date);
+                    adapter.notifyDataSetChanged();
+                }
+            }
+        }
     }
 
     private void saveData() {
@@ -330,36 +400,61 @@ public class MainActivity extends AppCompatActivity {
 
         String startTime = tf.format( new Date(System.currentTimeMillis() - 60000 * (UpdateTime/60000) ));
 
-        DatabaseReference current_id = mDatabase.child( String.valueOf( mKeys.size() ) );
-        current_id.child("minutes").setValue( String.valueOf(UpdateTime / 60000) );
+        totalMinutes += UpdateTime / 60000;
+        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
+
+        String mins = String.valueOf(UpdateTime / 60000);
+
+        DatabaseReference current_id = mDatabase.child( String.valueOf( mKeys.size() ) );                        //added to fireBase
+        current_id.child("minutes").setValue( mins );
         current_id.child("date").setValue( formattedDate );
         current_id.child("startTime").setValue( startTime );
         current_id.child("endTime").setValue( endTime );
 
-        totalMinutes += UpdateTime / 60000;
-        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
-
-        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt("minutes", totalMinutes);
+        SharedPreferences savedPrefs = getSharedPreferences("savedPrefs" + mKeys.size(), MODE_PRIVATE);   //added to SharedPreferences
+        SharedPreferences.Editor editor = savedPrefs.edit();
+        editor.putString("minutes", mins );
+        editor.putString("date", formattedDate );
+        editor.putString("startTime", startTime );
+        editor.putString("endTime", endTime );
+        editor.putInt("totalMinutes", totalMinutes);
         editor.apply();
+
+        times.add(String.valueOf(Integer.valueOf(mins) / 60) + "h " + String.valueOf(Integer.valueOf(mins) % 60) + "m " + "| " + startTime + " - " + endTime + " | " + formattedDate);
+        adapter.notifyDataSetChanged();
+
+        mKeys.add( String.valueOf( mKeys.size() ) );
 
     }
 
     private void clearData() {
-        totalTimeView.setText( "0h 0m" );
-        totalMinutes = 0;
 
-        for (int i = 0; i < mKeys.size(); i++)
-            mDatabase.child( mKeys.get( i ) ).removeValue();
+        if ( dataSaved ) {
 
-        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putInt("minutes", 0).apply();
+            SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor2 = resetPrefs.edit();
+            editor2.clear();
 
-        totalTimeView.setText( "" + 0 + "h " + 0 + "m " );
+            times.clear();
+            adapter.notifyDataSetChanged();
 
-        timeRunning = false;
+            totalTimeView.setText("0h 0m");
+            totalMinutes = 0;
+
+            for (int i = 0; i < mKeys.size(); i++)
+                mDatabase.child(mKeys.get(i)).removeValue();
+
+            mKeys.clear();
+
+            SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("minutes", 0).apply();
+
+            totalTimeView.setText("" + 0 + "h " + 0 + "m ");
+
+            timeRunning = false;
+            dataSaved = false;
+        }
     }
 
     private void setTime() {
@@ -374,7 +469,7 @@ public class MainActivity extends AppCompatActivity {
         int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
         int dollars = moneyTime / 100;
         int cents = moneyTime % 100;
-        moneyView.setText("" + "$"+ dollars + "." + cents );
+        moneyView.setText("" + symbol + dollars + "." + cents );
     }
 
     public Runnable runnable = new Runnable() {
@@ -397,6 +492,11 @@ public class MainActivity extends AppCompatActivity {
     public void setIncome(){
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         hourlyIncome = sharedPreferences.getInt("hourly_income",0);
+    }
+
+    public void setCurrency(){
+        SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        symbol = sharedPreferences.getString("currency","$");
     }
 
 }

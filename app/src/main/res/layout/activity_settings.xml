@@ -27,7 +27,9 @@
         android:layout_height="match_parent"
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/homeBtn"
-        android:layout_marginTop="59dp" />
+        android:layout_marginTop="59dp"
+        android:divider="#3A4B54"
+        android:dividerHeight="4px" />
 
 
 </RelativeLayout>

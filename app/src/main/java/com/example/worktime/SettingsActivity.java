@@ -11,11 +11,15 @@ import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -29,6 +33,8 @@ public class SettingsActivity extends AppCompatActivity {
     TextView prompt;
     EditText userInput;
 
+    String symbol;
+
     //Hashmaps and lists
     HashMap<String, String> userValues;
     List<HashMap<String, String>> listItems;
@@ -38,11 +44,20 @@ public class SettingsActivity extends AppCompatActivity {
     Context context;
 
     int hIncome;
+    String currency;
 
     Iterator it;
 
     ImageButton home;
     ListView settingsLV;
+
+    Spinner dropdown;
+    String[] items = new String[]{
+            "$", "£", "¥", "₱", "₣", "₤", "₭", "₦", "₨", "₩", "₮", "€", "฿", "₡", "৳", "៛", "₲", "₴", "₵", "₪", "₫", "〒", "Af", "B/.",
+            "Br", "Bs F", "Bs.", "C$", "D", "Db", "din", "ƒ", "Ft", "G", "K", "Kč", "Kn", "Kr", "Kz", "L", "Le", "m", "MK", "MTn",
+            "Nfk", "P", "Q", "R", "R$", "RM", "Rp", "Rs", "S/.", "Sh", "T", "T$", "UM", "Vt", "ZK", "zł", "ден", "SM", "KM", "лв",
+            "ман", "р.", "Դ", "ლ", "ب.د", "د.ا", "د.إ", "د.ت", "د.ج", "د.ك", "د.م.", "ر.س", "ر.ع.", "ر.ق", "ع.د", "ل.د", "ل.س", "ل.ل", "ރ."
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,14 +68,15 @@ public class SettingsActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("shared preferences", MODE_PRIVATE);
 
-
         settingsLV = (ListView) findViewById(R.id.settings_listview);
         home = (ImageButton)findViewById(R.id.homeBtn);
 
         hIncome = prefs.getInt("hourly_income", 0);
+        currency = prefs.getString("currency", "$");
 
         userValues = new HashMap<>();
         userValues.put("Hourly Income", "$" + Integer.toString( hIncome ) + " /hr");
+        userValues.put("Currency", currency );
 
         listItems = new ArrayList<>();
 
@@ -105,6 +121,30 @@ public class SettingsActivity extends AppCompatActivity {
                                 userInput.setInputType(InputType.TYPE_CLASS_TEXT);
                                 choice = 1;
                                 break;
+                            case "Currency":
+                                promptsView = li.inflate(R.layout.stat_options, null);
+                                prompt = (TextView) promptsView.findViewById(R.id.prompt);
+                                prompt.setText(R.string.currencyPrompt);
+
+                                dropdown = (Spinner) promptsView.findViewById(R.id.spinner1);
+
+                                ArrayAdapter<String> dropAdapter = new ArrayAdapter<>(SettingsActivity.this, android.R.layout.simple_spinner_dropdown_item, items);
+                                dropdown.setAdapter(dropAdapter);
+
+                                dropdown.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                    @Override
+                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                        symbol = items[position];
+                                    }
+
+                                    @Override
+                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                    }
+                                });
+
+                                choice = 2;
+                                break;
                             default:
                                 choice = 1;
                                 break;
@@ -120,8 +160,14 @@ public class SettingsActivity extends AppCompatActivity {
                                     public void onClick(DialogInterface dialog,int id) {
                                         switch(choice){
                                             case 1:
-                                                String str = userInput.getText().toString();
-                                                prefs.edit().putInt("hourly_income", Integer.parseInt(str) ).apply();
+                                                if ( !( userInput.getText().equals("") ) ) {
+                                                    String str = userInput.getText().toString();
+                                                    prefs.edit().putInt("hourly_income", Integer.parseInt(str)).apply();
+                                                }
+                                                updateAdapter();
+                                                break;
+                                            case 2:
+                                                prefs.edit().putString("currency", symbol ).apply();
 
                                                 updateAdapter();
                                                 break;
@@ -154,8 +200,11 @@ public class SettingsActivity extends AppCompatActivity {
 
     }
 
+
+
     private void updateAdapter(){
         userValues.put("Hourly Income", "$" + prefs.getInt("hourly_income", 0) + " /hr");
+        userValues.put("Currency", prefs.getString("currency", "$") );
 
         listItems.clear();
         it = userValues.entrySet().iterator();

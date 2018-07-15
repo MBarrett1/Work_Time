@@ -121,6 +121,8 @@
         android:layout_height="360dp"
         android:layout_below="@+id/button4"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="4dp" />
+        android:layout_marginTop="4dp"
+        android:divider="#3A4B54"
+        android:dividerHeight="4px" />
 
 </RelativeLayout>

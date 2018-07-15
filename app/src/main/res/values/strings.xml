@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">WorkTime</string>
     <string name="incomePrompt">Set hourly income :</string>
+    <string name="currencyPrompt">Currency symbol :</string>
+    <string name="clearMessage">Are you sure you want to clear your saved hours?</string>
+
+    <string name="AUD">$</string>
 </resources>
