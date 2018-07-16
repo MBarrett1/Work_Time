@@ -19,6 +19,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/button"
         android:background="@color/colorPrimaryDark"
+        android:contentDescription="@string/settingsCD"
         app:srcCompat="@mipmap/settings" />
 
     <TextView
@@ -29,7 +30,7 @@
     android:layout_centerHorizontal="true"
     android:layout_marginBottom="-76dp"
     android:text="@string/timeText"
-    android:textSize="25dp"
+    android:textSize="25sp"
     android:textColor="#FFFFFF" />
 
     <TextView
@@ -38,9 +39,9 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentTop="true"
-        android:text="0h 0m"
+        android:text="@string/totalTimeView"
         android:textColor="#FFFFFF"
-        android:textSize="15dp" />
+        android:textSize="15sp" />
 
     <TextView
         android:id="@+id/moneyView"
@@ -49,9 +50,9 @@
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="76dp"
-        android:text="$0.0"
+        android:text="@string/moneyView"
         android:textColor="#FFFFFF"
-        android:textSize="50dp" />
+        android:textSize="50sp" />
 
     <Button
         style="?android:attr/borderlessButtonStyle"
@@ -62,7 +63,7 @@
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
         android:layout_marginTop="151dp"
-        android:text="Start" />
+        android:text="@string/startBtn" />
 
     <Button
         style="?android:attr/borderlessButtonStyle"
@@ -72,7 +73,7 @@
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/button"
         android:layout_centerHorizontal="true"
-        android:text="Pause" />
+        android:text="@string/pauseBtn" />
 
     <Button
         android:id="@+id/button5"
@@ -81,7 +82,7 @@
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/button3"
         android:layout_alignTop="@+id/button6"
-        android:text="Clear"
+        android:text="@string/clearBtn"
         android:textColor="#FFFFFF" />
 
     <Button
@@ -92,7 +93,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignTop="@+id/button"
-        android:text="Reset" />
+        android:text="@string/resetBtn" />
 
     <Button
         android:id="@+id/button6"
@@ -102,7 +103,7 @@
         android:layout_alignParentTop="true"
         android:layout_alignStart="@+id/button"
         android:layout_marginTop="228dp"
-        android:text="Add"
+        android:text="@string/addBtn"
         android:textColor="#FFFFFF" />
 
     <Button
@@ -113,7 +114,7 @@
         android:layout_height="wrap_content"
         android:layout_alignStart="@+id/button2"
         android:layout_alignTop="@+id/button6"
-        android:text="Finish" />
+        android:text="@string/finishBtn" />
 
     <ListView
         android:id="@+id/listview1"
@@ -123,6 +124,6 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="4dp"
         android:divider="#3A4B54"
-        android:dividerHeight="4px" />
+        android:dividerHeight="2dp" />
 
 </RelativeLayout>

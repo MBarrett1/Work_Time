@@ -8,4 +8,13 @@
                             <font size="50">0</font><font size ="25">s</font></string>
     <string name="moneyDisplay">%1$s%2$d.%3$d</string>
     <string name="totalTimeDisplay">%1$dh %2$dm</string>
+    <string name="finishBtn">Finish</string>
+    <string name="addBtn">Add</string>
+    <string name="resetBtn">Reset</string>
+    <string name="clearBtn">Clear</string>
+    <string name="pauseBtn">Pause</string>
+    <string name="startBtn">Start</string>
+    <string name="moneyView">$0.0</string>
+    <string name="totalTimeView">0h 0m</string>
+    <string name="settingsCD">Settings Button</string>
 </resources>

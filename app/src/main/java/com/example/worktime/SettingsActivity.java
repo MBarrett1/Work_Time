@@ -18,14 +18,11 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class SettingsActivity extends AppCompatActivity {
 
@@ -68,8 +65,8 @@ public class SettingsActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("shared preferences", MODE_PRIVATE);
 
-        settingsLV = (ListView) findViewById(R.id.settings_listview);
-        home = (ImageButton)findViewById(R.id.homeBtn);
+        settingsLV = findViewById(R.id.settings_listview);
+        home = findViewById(R.id.homeBtn);
 
         hIncome = prefs.getInt("hourly_income", 0);
         currency = prefs.getString("currency", "$");
@@ -114,19 +111,18 @@ public class SettingsActivity extends AppCompatActivity {
                         switch(objStr){
                             case "Hourly Income":
                                 promptsView = li.inflate(R.layout.stat_change, null);
-                                prompt = (TextView) promptsView.findViewById(R.id.prompt);
+                                prompt = promptsView.findViewById(R.id.prompt);
                                 prompt.setText(R.string.incomePrompt);
-                                userInput = (EditText) promptsView
-                                        .findViewById(R.id.editTextResult);
+                                userInput = promptsView.findViewById(R.id.editTextResult);
                                 userInput.setInputType(InputType.TYPE_CLASS_TEXT);
                                 choice = 1;
                                 break;
                             case "Currency":
                                 promptsView = li.inflate(R.layout.stat_options, null);
-                                prompt = (TextView) promptsView.findViewById(R.id.prompt);
+                                prompt = promptsView.findViewById(R.id.prompt);
                                 prompt.setText(R.string.currencyPrompt);
 
-                                dropdown = (Spinner) promptsView.findViewById(R.id.spinner1);
+                                dropdown = promptsView.findViewById(R.id.spinner1);
 
                                 ArrayAdapter<String> dropAdapter = new ArrayAdapter<>(SettingsActivity.this, android.R.layout.simple_spinner_dropdown_item, items);
                                 dropdown.setAdapter(dropAdapter);
@@ -160,7 +156,7 @@ public class SettingsActivity extends AppCompatActivity {
                                     public void onClick(DialogInterface dialog,int id) {
                                         switch(choice){
                                             case 1:
-                                                if ( !( userInput.getText().equals("") ) ) {
+                                                if ( !( userInput.getText().length() == 0 ) ) {
                                                     String str = userInput.getText().toString();
                                                     prefs.edit().putInt("hourly_income", Integer.parseInt(str)).apply();
                                                 }
