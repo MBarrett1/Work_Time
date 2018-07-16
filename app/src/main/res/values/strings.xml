@@ -6,5 +6,6 @@
     <string name="timeText"><font size="50">0</font><font size ="25">h</font>
                             <font size="50">0</font><font size ="25">m</font>
                             <font size="50">0</font><font size ="25">s</font></string>
-    <string name="AUD">$</string>
+    <string name="moneyDisplay">%1$s%2$d.%3$d</string>
+    <string name="totalTimeDisplay">%1$dh %2$dm</string>
 </resources>

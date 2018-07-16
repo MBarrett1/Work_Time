@@ -4,13 +4,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.icu.util.Calendar;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.preference.PreferenceManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.text.SpannableString;
@@ -25,22 +22,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.os.Handler;
 import android.widget.Toast;
-
-import com.google.firebase.database.ChildEventListener;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-
 import java.lang.reflect.Type;
-import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -76,18 +66,18 @@ public class MainActivity extends AppCompatActivity {
 
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        timeView = (TextView)findViewById(R.id.timeView);
-        moneyView = (TextView)findViewById(R.id.moneyView);
-        totalTimeView = (TextView)findViewById(R.id.totalTimeView);
+        timeView = findViewById(R.id.timeView);
+        moneyView = findViewById(R.id.moneyView);
+        totalTimeView = findViewById(R.id.totalTimeView);
 
-        start = (Button)findViewById(R.id.button);
-        pause = (Button)findViewById(R.id.button2);
-        reset = (Button)findViewById(R.id.button3);
-        lap = (Button)findViewById(R.id.button4) ;
-        clear = (Button)findViewById(R.id.button5) ;
-        add = (Button)findViewById(R.id.button6) ;
-        settings = (ImageButton)findViewById(R.id.settingsBtn);
-        listView = (ListView)findViewById(R.id.listview1);
+        start = findViewById(R.id.button);
+        pause = findViewById(R.id.button2);
+        reset = findViewById(R.id.button3);
+        lap = findViewById(R.id.button4) ;
+        clear = findViewById(R.id.button5);
+        add = findViewById(R.id.button6) ;
+        settings = findViewById(R.id.settingsBtn);
+        listView = findViewById(R.id.listview1);
 
         handler = new Handler() ;
 
@@ -156,7 +146,7 @@ public class MainActivity extends AppCompatActivity {
                 MilliSeconds = 0;
 
                 setTimeView( true );
-                moneyView.setText(symbol + "0.00");
+                setMoneyView( true );
 
                 timeRunning = false;
 
@@ -232,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
                     MilliSeconds = 0;
 
                    setTimeView( true );
-                    moneyView.setText(symbol + "0.00");
+                   setMoneyView( true );
 
                 } else if ( timeRunning ) {
                     Toast.makeText(getApplicationContext(),"total time must be greater than 1 minute",Toast.LENGTH_SHORT).show();
@@ -265,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
 
         loadData();
 
-        moneyView.setText(symbol + "0.00");
+        setMoneyView( true );
 
         SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
         timeRunning = resetPrefs.getBoolean("running", false);
@@ -301,7 +291,7 @@ public class MainActivity extends AppCompatActivity {
     private void loadData() {
         SharedPreferences sharedPreferences = getSharedPreferences("savedPrefs", MODE_PRIVATE);
         totalMinutes = sharedPreferences.getInt("totalMinutes", 0);
-        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
+        setTotalTimeView( false );
 
         if ( dataSaved ) {
 
@@ -314,10 +304,10 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < mKeys.size(); i++) {
                 String key = "savedPrefs" + i;
                 SharedPreferences savedPrefs = getSharedPreferences(key, MODE_PRIVATE);
-                String mins = savedPrefs.getString("minutes", "");
-                String date = savedPrefs.getString("date", "");
-                String startTime = savedPrefs.getString("startTime", "");
-                String endTime = savedPrefs.getString("endTime", "");
+                String mins = savedPrefs.getString("minutes", null);
+                String date = savedPrefs.getString("date", null);
+                String startTime = savedPrefs.getString("startTime", null);
+                String endTime = savedPrefs.getString("endTime", null);
                 if (mins != null && date != null && startTime != null && endTime != null) {
                     times.add(String.valueOf(Integer.valueOf(mins) / 60) + "h " + String.valueOf(Integer.valueOf(mins) % 60) + "m " + "| " + startTime + " - " + endTime + " | " + date);
                     adapter.notifyDataSetChanged();
@@ -329,16 +319,16 @@ public class MainActivity extends AppCompatActivity {
     private void saveData() {
 
         Date c = Calendar.getInstance().getTime();
-        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy");
+        SimpleDateFormat df = new SimpleDateFormat("dd-MMM-yyyy", Locale.getDefault() );
         String formattedDate = df.format(c);
 
-        SimpleDateFormat tf = new SimpleDateFormat("HH:mm");
+        SimpleDateFormat tf = new SimpleDateFormat("HH:mm", Locale.getDefault() );
         String endTime = tf.format(Calendar.getInstance().getTime());
 
         String startTime = tf.format( new Date(System.currentTimeMillis() - 60000 * (UpdateTime/60000) ));
 
         totalMinutes += UpdateTime / 60000;
-        totalTimeView.setText( "" + totalMinutes/60 + "h " + totalMinutes%60 + "m " );
+        setTotalTimeView( false );
 
         String mins = String.valueOf(UpdateTime / 60000);
 
@@ -370,12 +360,12 @@ public class MainActivity extends AppCompatActivity {
 
             SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
             SharedPreferences.Editor editor2 = resetPrefs.edit();
-            editor2.clear();
+            editor2.clear().apply();
 
             times.clear();
             adapter.notifyDataSetChanged();
 
-            totalTimeView.setText("0h 0m");
+            setTotalTimeView( true );
             totalMinutes = 0;
 
             for (int i = 0; i < mKeys.size(); i++)
@@ -386,8 +376,6 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putInt("minutes", 0).apply();
-
-            totalTimeView.setText("" + 0 + "h " + 0 + "m ");
 
             timeRunning = false;
             dataSaved = false;
@@ -402,10 +390,7 @@ public class MainActivity extends AppCompatActivity {
         Minutes = time % 60;
         MilliSeconds = (int) (UpdateTime % 1000);
         setTimeView( false );
-        int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
-        int dollars = moneyTime / 100;
-        int cents = moneyTime % 100;
-        moneyView.setText("" + symbol + dollars + "." + cents );
+        setMoneyView( false );
     }
 
     public Runnable runnable = new Runnable() {
@@ -429,21 +414,6 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         symbol = sharedPreferences.getString("currency","$");
     }
-
-//    public void setTimeView(boolean reset) {
-//
-//        String s;
-//        if ( reset ) {
-//            s = "0h 0m 0s";
-//        } else {
-//            s = "" + Hours + "h " + Minutes + "m " + String.format("%02d", Seconds) + "s";
-//        }
-//        SpannableString ss1 = new SpannableString(s);
-//        ss1.setSpan(new RelativeSizeSpan(2f), 0, 1, 0);
-//        ss1.setSpan(new RelativeSizeSpan(2f), 3, 4, 0);
-//        ss1.setSpan(new RelativeSizeSpan(2f), 5, 7, 0);
-//        timeView.setText( ss1 );
-//    }
 
     public void setTimeView(boolean reset) {
 
@@ -492,6 +462,34 @@ public class MainActivity extends AppCompatActivity {
                 ss1.setSpan(new RelativeSizeSpan(2f), 8, 10, 0);}
             timeView.setText( ss1 );
         }
+    }
+
+    public void setMoneyView(boolean reset) {
+
+        int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
+        int dollars = moneyTime / 100;
+        int cents = moneyTime % 100;
+        String s;
+
+        if ( reset ) {
+            dollars = 0;
+            cents = 0;
+            s = getString(R.string.moneyDisplay, symbol, dollars, cents);
+        } else {
+            s = getString(R.string.moneyDisplay, symbol, dollars, cents);
+        }
+        moneyView.setText( s );
+    }
+
+    public void setTotalTimeView(boolean reset) {
+
+        String s;
+        if ( reset ) {
+            s = getString(R.string.totalTimeDisplay, 0, 0);
+        } else {
+            s = getString(R.string.totalTimeDisplay, totalMinutes/60, totalMinutes%60 );
+        }
+        totalTimeView.setText( s );
     }
 
 }
