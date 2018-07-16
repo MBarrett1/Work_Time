@@ -66,23 +66,13 @@
         android:text="@string/startBtn" />
 
     <Button
-        style="?android:attr/borderlessButtonStyle"
-        android:textColor="#FFFFFF"
         android:id="@+id/button2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/button"
-        android:layout_centerHorizontal="true"
-        android:text="@string/pauseBtn" />
-
-    <Button
-        android:id="@+id/button5"
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/button3"
-        android:layout_alignTop="@+id/button6"
-        android:text="@string/clearBtn"
+        android:layout_alignStart="@+id/settingsBtn"
+        android:layout_alignTop="@+id/button"
+        android:text="@string/pauseBtn"
         android:textColor="#FFFFFF" />
 
     <Button
@@ -100,29 +90,27 @@
         style="?android:attr/borderlessButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/button"
-        android:layout_marginTop="228dp"
+        android:layout_alignEnd="@+id/totalTimeView"
+        android:layout_alignTop="@+id/timeView"
         android:text="@string/addBtn"
         android:textColor="#FFFFFF" />
 
     <Button
-        style="?android:attr/borderlessButtonStyle"
-        android:textColor="#FFFFFF"
         android:id="@+id/button4"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignStart="@+id/button2"
-        android:layout_alignTop="@+id/button6"
-        android:text="@string/finishBtn" />
+        android:layout_alignTop="@+id/button"
+        android:layout_centerHorizontal="true"
+        android:text="@string/finishBtn"
+        android:textColor="#FFFFFF" />
 
     <ListView
         android:id="@+id/listview1"
         android:layout_width="match_parent"
-        android:layout_height="360dp"
-        android:layout_below="@+id/button4"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="4dp"
+        android:layout_height="415dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
         android:divider="#3A4B54"
         android:dividerHeight="2dp" />
 

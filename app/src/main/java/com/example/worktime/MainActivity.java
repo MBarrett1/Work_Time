@@ -41,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
     boolean finishedCalled = false;
     boolean timeRunning = false;
     boolean dataSaved = false;
+    boolean cleared = false;
+    boolean prefsLoaded = false;
     String symbol = "$";
     long MillisecondTime, StartTime, TimeBuff, UpdateTime = 0L ;
     final Context context = this;
@@ -51,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
     TextView timeView ;
     TextView moneyView;
     TextView totalTimeView;
-    Button start, pause, reset, lap, clear, add;
+    Button start, pause, reset, lap, add;
     ImageButton settings;
     ListView listView ;
 
@@ -74,10 +76,11 @@ public class MainActivity extends AppCompatActivity {
         pause = findViewById(R.id.button2);
         reset = findViewById(R.id.button3);
         lap = findViewById(R.id.button4) ;
-        clear = findViewById(R.id.button5);
         add = findViewById(R.id.button6) ;
         settings = findViewById(R.id.settingsBtn);
         listView = findViewById(R.id.listview1);
+
+        pause.setVisibility(View.INVISIBLE);
 
         handler = new Handler() ;
 
@@ -109,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         start.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                setRunning( true );
                 setIncome();
                 StartTime = SystemClock.uptimeMillis();
                 handler.postDelayed(runnable, 0);
@@ -118,7 +122,7 @@ public class MainActivity extends AppCompatActivity {
         pause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                setRunning( false );
                 TimeBuff += MillisecondTime;
                 handler.removeCallbacks(runnable);
                 reset.setEnabled(true);
@@ -150,38 +154,8 @@ public class MainActivity extends AppCompatActivity {
 
                 timeRunning = false;
 
-            }
-        });
+                setRunning( false );
 
-        clear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                LayoutInflater li = LayoutInflater.from(context);
-                View promptsView = li.inflate(R.layout.warning_reset, null);
-
-                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(
-                        context);
-
-                alertDialogBuilder.setView(promptsView);
-
-                alertDialogBuilder
-                        .setCancelable(false)
-                        .setPositiveButton("OK",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog,int id) {
-                                        clearData();
-                                    }
-                                })
-                        .setNegativeButton("Cancel",
-                                new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog,int id) {
-                                        dialog.cancel();
-                                    }
-                                });
-
-                AlertDialog alertDialog = alertDialogBuilder.create();
-                alertDialog.show();
             }
         });
 
@@ -221,8 +195,9 @@ public class MainActivity extends AppCompatActivity {
                     Minutes = 0;
                     MilliSeconds = 0;
 
-                   setTimeView( true );
-                   setMoneyView( true );
+                    setTimeView( true );
+                    setMoneyView( true );
+                    setRunning( false );
 
                 } else if ( timeRunning ) {
                     Toast.makeText(getApplicationContext(),"total time must be greater than 1 minute",Toast.LENGTH_SHORT).show();
@@ -252,25 +227,36 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadPrefs() {
+        
+        SharedPreferences prefs = getSharedPreferences("shared preferences", MODE_PRIVATE);
+        cleared = prefs.getBoolean("cleared", false);
+
+        if ( cleared ) {
+            clearData();
+        }
 
         loadData();
 
-        setMoneyView( true );
+        setMoneyView(true);
 
         SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
         timeRunning = resetPrefs.getBoolean("running", false);
         dataSaved = resetPrefs.getBoolean("dataSaved", false);
         TimeBuff = resetPrefs.getLong("timeBuff", 0L);
 
-        if ( !timeRunning && TimeBuff != 0 ) {
+        if (!timeRunning && TimeBuff != 0) {
             UpdateTime = TimeBuff;
             setTime();
         }
 
-        if ( timeRunning ) {
+        if (timeRunning) {
             StartTime = resetPrefs.getLong("startTime", 0L);
             handler.postDelayed(runnable, 0);
+
+            start.setVisibility(View.INVISIBLE);
+            pause.setVisibility(View.VISIBLE);
         }
+
     }
 
     private void savePrefs() {
@@ -293,7 +279,9 @@ public class MainActivity extends AppCompatActivity {
         totalMinutes = sharedPreferences.getInt("totalMinutes", 0);
         setTotalTimeView( false );
 
-        if ( dataSaved ) {
+        if ( dataSaved && !prefsLoaded ) {
+
+            prefsLoaded = true;
 
             SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
             Gson gson = new Gson();
@@ -351,12 +339,13 @@ public class MainActivity extends AppCompatActivity {
         adapter.notifyDataSetChanged();
 
         mKeys.add( String.valueOf( mKeys.size() ) );
-
     }
 
     private void clearData() {
 
         if ( dataSaved ) {
+
+            cleared = false;
 
             SharedPreferences resetPrefs = getSharedPreferences("resetPrefs", MODE_PRIVATE);
             SharedPreferences.Editor editor2 = resetPrefs.edit();
@@ -375,6 +364,7 @@ public class MainActivity extends AppCompatActivity {
 
             SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("cleared", cleared);
             editor.putInt("minutes", 0).apply();
 
             timeRunning = false;
@@ -405,17 +395,17 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
-    public void setIncome() {
+    private void setIncome() {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         hourlyIncome = sharedPreferences.getInt("hourly_income",0);
     }
 
-    public void setCurrency() {
+    private void setCurrency() {
         SharedPreferences sharedPreferences = getSharedPreferences("shared preferences", MODE_PRIVATE);
         symbol = sharedPreferences.getString("currency","$");
     }
 
-    public void setTimeView(boolean reset) {
+    private void setTimeView(boolean reset) {
 
         String s;
         if ( reset ) {
@@ -464,7 +454,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void setMoneyView(boolean reset) {
+    private void setMoneyView(boolean reset) {
 
         int moneyTime = (int) ( ( ( UpdateTime / 600) * hourlyIncome ) / 60 );
         int dollars = moneyTime / 100;
@@ -481,7 +471,7 @@ public class MainActivity extends AppCompatActivity {
         moneyView.setText( s );
     }
 
-    public void setTotalTimeView(boolean reset) {
+    private void setTotalTimeView(boolean reset) {
 
         String s;
         if ( reset ) {
@@ -490,6 +480,18 @@ public class MainActivity extends AppCompatActivity {
             s = getString(R.string.totalTimeDisplay, totalMinutes/60, totalMinutes%60 );
         }
         totalTimeView.setText( s );
+    }
+
+    private void setRunning( boolean running ) {
+
+        if ( running ) {
+            start.setVisibility(View.INVISIBLE);
+            pause.setVisibility(View.VISIBLE);
+        } else {
+            start.setVisibility(View.VISIBLE);
+            pause.setVisibility(View.INVISIBLE);
+        }
+
     }
 
 }

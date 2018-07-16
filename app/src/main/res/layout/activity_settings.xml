@@ -17,8 +17,8 @@
         android:layout_width="30dp"
         android:layout_height="27dp"
         android:layout_alignParentTop="true"
-        android:layout_alignStart="@+id/button"
         android:background="@color/colorPrimaryDark"
+        android:contentDescription="@string/homeCD"
         app:srcCompat="@mipmap/home" />
 
     <ListView
@@ -29,7 +29,7 @@
         android:layout_alignStart="@+id/homeBtn"
         android:layout_marginTop="59dp"
         android:divider="#3A4B54"
-        android:dividerHeight="4px" />
+        android:dividerHeight="2dp" />
 
 
 </RelativeLayout>

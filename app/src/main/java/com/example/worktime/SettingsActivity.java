@@ -18,6 +18,8 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -42,6 +44,7 @@ public class SettingsActivity extends AppCompatActivity {
 
     int hIncome;
     String currency;
+    boolean cleared;
 
     Iterator it;
 
@@ -70,10 +73,13 @@ public class SettingsActivity extends AppCompatActivity {
 
         hIncome = prefs.getInt("hourly_income", 0);
         currency = prefs.getString("currency", "$");
+        cleared = prefs.getBoolean("cleared", false);
+
 
         userValues = new HashMap<>();
         userValues.put("Hourly Income", "$" + Integer.toString( hIncome ) + " /hr");
         userValues.put("Currency", currency );
+        userValues.put("Clear all saved times?","");
 
         listItems = new ArrayList<>();
 
@@ -141,6 +147,12 @@ public class SettingsActivity extends AppCompatActivity {
 
                                 choice = 2;
                                 break;
+                            case "Clear all saved times?":
+                                promptsView = li.inflate(R.layout.warning_reset, null);
+                                alertDialogBuilder.setView(promptsView);
+                                alertDialogBuilder.setCancelable(false);
+                                choice = 3;
+                                break;
                             default:
                                 choice = 1;
                                 break;
@@ -166,6 +178,10 @@ public class SettingsActivity extends AppCompatActivity {
                                                 prefs.edit().putString("currency", symbol ).apply();
 
                                                 updateAdapter();
+                                                break;
+                                            case 3:
+                                                cleared = true;
+                                                prefs.edit().putBoolean("cleared", cleared).apply();
                                                 break;
                                         }
 
